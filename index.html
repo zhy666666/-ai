@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>求职追踪 · 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #161920;
+    --border: #252830;
+    --accent: #e8c86e;
+    --accent2: #5b9cf6;
+    --accent3: #6ee8a8;
+    --text: #e8eaf0;
+    --muted: #7a7f90;
+    --danger: #f06e6e;
+    --warning: #f0a86e;
+    --sidebar-w: 340px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at 20% 20%, rgba(91,156,246,0.06) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 80%, rgba(232,200,110,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .main {
+    flex: 1;
+    padding: 40px 28px;
+    overflow-y: auto;
+    position: relative;
+    z-index: 1;
+    transition: margin-right 0.3s ease;
+  }
+
+  .main.sidebar-open { margin-right: var(--sidebar-w); }
+  .container { max-width: 1000px; margin: 0 auto; }
+
+  header {
+    margin-bottom: 36px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .header-left h1 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+  }
+
+  .header-left p { color: var(--muted); font-size: 0.72rem; margin-top: 6px; letter-spacing: 0.1em; }
+  .stats { display: flex; gap: 14px; flex-wrap: wrap; }
+
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 18px;
+    text-align: center;
+    min-width: 76px;
+  }
+
+  .stat-num { font-size: 1.4rem; font-weight: 700; color: var(--accent); display: block; }
+  .stat-label { font-size: 0.63rem; color: var(--muted); margin-top: 2px; letter-spacing: 0.08em; }
+
+  .controls { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+
+  input[type="text"], select {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    padding: 9px 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input[type="text"]:focus, select:focus { border-color: var(--accent); }
+  input[type="text"] { width: 190px; }
+  select option { background: var(--surface); }
+
+  .btn {
+    padding: 9px 18px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    transition: all 0.2s;
+  }
+
+  .btn-primary { background: var(--accent); color: #0d0f14; }
+  .btn-primary:hover { background: #f0d88a; transform: translateY(-1px); }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--accent2); color: var(--accent2); }
+  .btn-ai { background: rgba(91,156,246,0.15); color: var(--accent2); border: 1px solid rgba(91,156,246,0.3); }
+  .btn-ai:hover { background: rgba(91,156,246,0.25); }
+  .btn-ai.active { background: rgba(91,156,246,0.3); border-color: var(--accent2); }
+
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: rgba(232,200,110,0.06); border-bottom: 1px solid var(--border); }
+
+  th {
+    padding: 13px 14px;
+    text-align: left;
+    font-size: 0.63rem;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    font-weight: 700;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; animation: rowIn 0.3s ease forwards; opacity: 0; }
+
+  @keyframes rowIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  tbody tr:hover { background: rgba(255,255,255,0.025); }
+  tbody tr:last-child { border-bottom: none; }
+  td { padding: 12px 14px; font-size: 0.78rem; vertical-align: middle; }
+
+  td input, td select {
+    width: 100%;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.76rem;
+    padding: 3px 7px;
+    transition: border-color 0.2s;
+  }
+
+  td input:hover, td select:hover, td input:focus, td select:focus {
+    border-color: var(--border);
+    background: rgba(255,255,255,0.04);
+    outline: none;
+  }
+
+  td select option { background: #161920; }
+
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.04em; white-space: nowrap; }
+  .badge-pending   { background: rgba(122,127,144,0.2); color: var(--muted); }
+  .badge-viewed    { background: rgba(91,156,246,0.2);  color: var(--accent2); }
+  .badge-test      { background: rgba(240,168,110,0.2); color: var(--warning); }
+  .badge-interview { background: rgba(232,200,110,0.2); color: var(--accent); }
+  .badge-offer     { background: rgba(110,232,168,0.2); color: var(--accent3); }
+  .badge-reject    { background: rgba(240,110,110,0.15); color: var(--danger); }
+
+  .delete-btn { background: none; border: none; color: var(--border); cursor: pointer; font-size: 0.9rem; padding: 3px 7px; border-radius: 4px; transition: color 0.2s; }
+  .delete-btn:hover { color: var(--danger); }
+
+  .empty { text-align: center; padding: 56px 20px; color: var(--muted); font-size: 0.78rem; letter-spacing: 0.1em; }
+  .empty span { display: block; font-size: 2rem; margin-bottom: 10px; opacity: 0.4; }
+
+  .add-form { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-top: 14px; display: none; animation: fadeIn 0.2s ease; }
+  .add-form.open { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .add-form h3 { font-size: 0.72rem; letter-spacing: 0.12em; color: var(--accent); margin-bottom: 14px; text-transform: uppercase; }
+
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; margin-bottom: 14px; }
+
+  .form-group label { display: block; font-size: 0.62rem; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 5px; text-transform: uppercase; }
+
+  .form-group input, .form-group select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    padding: 8px 11px;
+    outline: none;
+  }
+
+  .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
+  .form-actions { display: flex; gap: 10px; }
+
+  /* AI Sidebar */
+  .ai-sidebar {
+    position: fixed;
+    right: 0; top: 0; bottom: 0;
+    width: var(--sidebar-w);
+    background: #12151c;
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+  }
+
+  .ai-sidebar.open { transform: translateX(0); }
+
+  .ai-header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .ai-header-left { display: flex; align-items: center; gap: 10px; }
+
+  .ai-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent2); animation: pulse 2s infinite; }
+
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  .ai-title { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.1em; color: var(--accent2); }
+  .ai-sub { font-size: 0.6rem; color: var(--muted); margin-top: 2px; }
+
+  .ai-close { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1.1rem; padding: 4px; transition: color 0.2s; }
+  .ai-close:hover { color: var(--text); }
+
+  .ai-quick-btns { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 7px; }
+
+  .quick-btn {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    padding: 5px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .quick-btn:hover { border-color: var(--accent2); color: var(--accent2); background: rgba(91,156,246,0.08); }
+
+  .ai-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+  .ai-messages::-webkit-scrollbar { width: 4px; }
+  .ai-messages::-webkit-scrollbar-track { background: transparent; }
+  .ai-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .msg { display: flex; flex-direction: column; gap: 4px; }
+  .msg-user { align-items: flex-end; }
+  .msg-ai { align-items: flex-start; }
+
+  .msg-bubble { max-width: 88%; padding: 10px 13px; border-radius: 12px; font-size: 0.75rem; line-height: 1.6; }
+
+  .msg-user .msg-bubble { background: rgba(232,200,110,0.12); border: 1px solid rgba(232,200,110,0.2); color: var(--text); border-bottom-right-radius: 4px; }
+  .msg-ai .msg-bubble { background: rgba(91,156,246,0.08); border: 1px solid rgba(91,156,246,0.15); color: var(--text); border-bottom-left-radius: 4px; }
+
+  .msg-time { font-size: 0.58rem; color: var(--muted); padding: 0 4px; }
+
+  .typing-indicator { display: flex; align-items: center; gap: 4px; padding: 10px 13px; background: rgba(91,156,246,0.08); border: 1px solid rgba(91,156,246,0.15); border-radius: 12px; border-bottom-left-radius: 4px; width: fit-content; }
+
+  .typing-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent2); opacity: 0.6; animation: typingBounce 1.2s infinite; }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes typingBounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }
+
+  .ai-input-area { padding: 14px 16px; border-top: 1px solid var(--border); display: flex; gap: 8px; align-items: flex-end; }
+
+  .ai-input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    padding: 10px 12px;
+    resize: none;
+    outline: none;
+    min-height: 40px;
+    max-height: 100px;
+    transition: border-color 0.2s;
+    line-height: 1.5;
+  }
+
+  .ai-input:focus { border-color: var(--accent2); }
+
+  .send-btn { background: var(--accent2); border: none; border-radius: 8px; color: #0d0f14; cursor: pointer; font-size: 0.9rem; padding: 10px 14px; font-weight: 700; transition: all 0.2s; flex-shrink: 0; }
+  .send-btn:hover { background: #7ab4f8; transform: translateY(-1px); }
+  .send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+</style>
+</head>
+<body>
+
+<div class="main" id="main">
+<div class="container">
+
+  <header>
+    <div class="header-left">
+      <h1>求职追踪 2026</h1>
+      <p>TRACK · ANALYZE · WIN</p>
+    </div>
+    <div class="stats">
+      <div class="stat"><span class="stat-num" id="s-total">0</span><div class="stat-label">总投递</div></div>
+      <div class="stat"><span class="stat-num" id="s-active" style="color:var(--accent2)">0</span><div class="stat-label">进行中</div></div>
+      <div class="stat"><span class="stat-num" id="s-interview" style="color:var(--accent)">0</span><div class="stat-label">面试</div></div>
+      <div class="stat"><span class="stat-num" id="s-offer" style="color:var(--accent3)">0</span><div class="stat-label">Offer</div></div>
+    </div>
+  </header>
+
+  <div class="controls">
+    <input type="text" id="search" placeholder="搜索公司 / 岗位...">
+    <select id="filter-status" onchange="renderTable()">
+      <option value="">全部状态</option>
+      <option value="待审核">待审核</option>
+      <option value="已查看">已查看</option>
+      <option value="笔试">笔试</option>
+      <option value="面试">面试</option>
+      <option value="Offer">Offer ✓</option>
+      <option value="已挂">已挂 ✗</option>
+    </select>
+    <button class="btn btn-primary" onclick="toggleForm()">＋ 添加记录</button>
+    <button class="btn btn-ghost" onclick="exportCSV()">导出 CSV</button>
+    <button class="btn btn-ghost" onclick="document.getElementById('csv-import-input').click()">导入 CSV</button>
+    <input type="file" id="csv-import-input" accept=".csv" style="display:none" onchange="importCSV(event)">
+    <button class="btn btn-ai" id="ai-toggle-btn" onclick="toggleSidebar()">✦ AI 分析</button>
+  </div>
+
+  <div class="add-form" id="add-form">
+    <h3>新增投递记录</h3>
+    <div class="form-grid">
+      <div class="form-group"><label>公司名称 *</label><input type="text" id="f-company" placeholder="如：影石 Insta360"></div>
+      <div class="form-group"><label>岗位名称 *</label><input type="text" id="f-position" placeholder="如：资金管培生"></div>
+      <div class="form-group"><label>投递日期</label><input type="date" id="f-date"></div>
+      <div class="form-group">
+        <label>当前状态</label>
+        <select id="f-status">
+          <option value="待审核">待审核</option>
+          <option value="已查看">已查看</option>
+          <option value="笔试">笔试</option>
+          <option value="面试">面试</option>
+          <option value="Offer">Offer ✓</option>
+          <option value="已挂">已挂 ✗</option>
+        </select>
+      </div>
+      <div class="form-group"><label>备注</label><input type="text" id="f-note" placeholder="截止日期 / 进展..."></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="addEntry()">确认添加</button>
+      <button class="btn btn-ghost" onclick="toggleForm()">取消</button>
+    </div>
+  </div>
+
+  <div class="table-wrap" style="margin-top:14px">
+    <table>
+      <thead>
+        <tr><th>#</th><th>公司</th><th>岗位</th><th>投递日期</th><th>状态</th><th>备注</th><th></th></tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+    <div class="empty" id="empty-state"><span>📋</span>暂无记录，点击「添加记录」开始追踪</div>
+  </div>
+
+</div>
+</div>
+
+<!-- AI Sidebar -->
+<div class="ai-sidebar" id="ai-sidebar">
+  <div class="ai-header">
+    <div class="ai-header-left">
+      <div class="ai-dot"></div>
+      <div>
+        <div class="ai-title">AI 求职助手</div>
+        <div class="ai-sub">分析你的投递情况</div>
+      </div>
+    </div>
+    <button class="ai-close" onclick="toggleSidebar()">✕</button>
+  </div>
+
+  <div class="ai-quick-btns">
+    <button class="quick-btn" onclick="quickAsk('帮我分析一下我的整体投递情况')">📊 整体分析</button>
+    <button class="quick-btn" onclick="quickAsk('我目前有哪些机会最值得重点跟进？')">🎯 重点机会</button>
+    <button class="quick-btn" onclick="quickAsk('我的投递覆盖面够吗？还应该投哪些公司？')">📈 扩大投递</button>
+    <button class="quick-btn" onclick="quickAsk('我目前胜率如何？有什么建议？')">💡 胜率建议</button>
+  </div>
+
+  <div class="ai-messages" id="ai-messages">
+    <div class="msg msg-ai">
+      <div class="msg-bubble">你好 Star！我是你的求职助手 ✦<br><br>我可以帮你分析投递数据、找出最值得跟进的机会、给出扩大投递的建议。<br><br>点击上方快捷问题，或直接输入你的问题吧～</div>
+      <div class="msg-time">刚刚</div>
+    </div>
+  </div>
+
+  <div class="ai-input-area">
+    <textarea class="ai-input" id="ai-input" placeholder="问我关于你的求职情况..." rows="1" onkeydown="handleKey(event)"></textarea>
+    <button class="send-btn" id="send-btn" onclick="sendMessage()">➤</button>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'job_tracker_2025';
+
+const statusMap = { '待审核':'pending','已查看':'viewed','笔试':'test','面试':'interview','Offer':'offer','已挂':'reject' };
+const statusLabel = { '待审核':'待审核','已查看':'已查看','笔试':'笔试','面试':'面试','Offer':'Offer ✓','已挂':'已挂 ✗' };
+
+let data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+let aiHistory = [];
+let sidebarOpen = false;
+
+if (data.length === 0) {
+  data = [
+    { id:1, company:'广州期货交易所', position:'金融财会类', date:'2026-01', status:'已挂', note:'简历未过' },
+    { id:2, company:'鹏华基金', position:'机构业务经理/助理研究员', date:'2026-02', status:'待审核', note:'' },
+    { id:3, company:'影石 Insta360', position:'资金管培生/运营管培生', date:'2026-02', status:'待审核', note:'筛选未开始' },
+    { id:4, company:'vivo', position:'战略规划经理', date:'2026-02', status:'笔试', note:'测评过了，3.23-27面试' },
+    { id:5, company:'OPPO', position:'风控策略分析师/产品经理', date:'2026-02', status:'待审核', note:'简历筛选中' },
+    { id:6, company:'华为', position:'消费者MTF/车部产品经理', date:'2026-02', status:'待审核', note:'2.26刚修改' },
+    { id:7, company:'中国金币有限公司', position:'项目开发/管培生', date:'2026-01', status:'笔试', note:'笔试完无消息' },
+    { id:8, company:'货拉拉', position:'全球拓展管培生', date:'2026-01', status:'待审核', note:'估计挂了' },
+    { id:9, company:'迅雷', position:'X-PEP产品星计划', date:'2026-02', status:'待审核', note:'初筛' },
+    { id:10, company:'招商银行', position:'市场营销/远程客户经理', date:'2026-02', status:'待审核', note:'简历筛选' },
+    { id:11, company:'京东', position:'销售运营/综合方向', date:'2026-02', status:'笔试', note:'笔试完再简历筛选' },
+    { id:12, company:'字节跳动', position:'策略产品经理-红果短剧', date:'2026-02', status:'待审核', note:'投了没后续' },
+    { id:13, company:'广州期货交易所科技子公司', position:'金融岗', date:'2026-02', status:'待审核', note:'boss简历未锁' },
+  ];
+  save();
+}
+
+function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+
+function renderTable() {
+  const search = document.getElementById('search').value.toLowerCase();
+  const filterStatus = document.getElementById('filter-status').value;
+  const tbody = document.getElementById('table-body');
+  const empty = document.getElementById('empty-state');
+
+  let filtered = data.filter(d => {
+    const matchSearch = !search || d.company.toLowerCase().includes(search) || d.position.toLowerCase().includes(search);
+    const matchStatus = !filterStatus || d.status === filterStatus;
+    return matchSearch && matchStatus;
+  });
+
+  tbody.innerHTML = '';
+  empty.style.display = filtered.length === 0 ? 'block' : 'none';
+
+  filtered.forEach((row, i) => {
+    const tr = document.createElement('tr');
+    tr.style.animationDelay = (i * 0.04) + 's';
+    const cls = statusMap[row.status] || 'pending';
+    tr.innerHTML = `
+      <td style="color:var(--muted);font-size:0.68rem">${String(i+1).padStart(2,'0')}</td>
+      <td><input type="text" value="${esc(row.company)}" onchange="updateField(${row.id},'company',this.value)"></td>
+      <td><input type="text" value="${esc(row.position)}" onchange="updateField(${row.id},'position',this.value)"></td>
+      <td><input type="text" value="${esc(row.date)}" onchange="updateField(${row.id},'date',this.value)" style="width:90px"></td>
+      <td>
+        <select onchange="updateField(${row.id},'status',this.value)">
+          ${Object.keys(statusLabel).map(s=>`<option value="${s}" ${s===row.status?'selected':''}>${statusLabel[s]}</option>`).join('')}
+        </select>
+        <span class="badge badge-${cls}" style="margin-left:5px">${statusLabel[row.status]||row.status}</span>
+      </td>
+      <td><input type="text" value="${esc(row.note)}" onchange="updateField(${row.id},'note',this.value)" placeholder="备注..."></td>
+      <td><button class="delete-btn" onclick="deleteRow(${row.id})">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  updateStats();
+}
+
+function updateStats() {
+  document.getElementById('s-total').textContent = data.length;
+  document.getElementById('s-active').textContent = data.filter(d=>!['已挂','Offer'].includes(d.status)).length;
+  document.getElementById('s-interview').textContent = data.filter(d=>d.status==='面试').length;
+  document.getElementById('s-offer').textContent = data.filter(d=>d.status==='Offer').length;
+}
+
+function updateField(id, field, value) {
+  const row = data.find(d=>d.id===id);
+  if (row) { row[field]=value; save(); updateStats(); renderTable(); }
+}
+
+function deleteRow(id) { data=data.filter(d=>d.id!==id); save(); renderTable(); }
+
+function toggleForm() {
+  const f = document.getElementById('add-form');
+  f.classList.toggle('open');
+  if (f.classList.contains('open')) {
+    document.getElementById('f-date').value = new Date().toISOString().slice(0,10);
+    document.getElementById('f-company').focus();
+  }
+}
+
+function addEntry() {
+  const company = document.getElementById('f-company').value.trim();
+  const position = document.getElementById('f-position').value.trim();
+  if (!company || !position) { alert('公司名称和岗位名称为必填项'); return; }
+  const newId = data.length ? Math.max(...data.map(d=>d.id))+1 : 1;
+  data.push({ id:newId, company, position,
+    date: document.getElementById('f-date').value || new Date().toISOString().slice(0,7),
+    status: document.getElementById('f-status').value,
+    note: document.getElementById('f-note').value.trim()
+  });
+  save(); renderTable(); toggleForm();
+  ['f-company','f-position','f-note'].forEach(id=>document.getElementById(id).value='');
+}
+
+function exportCSV() {
+  const headers = ['公司','岗位','投递日期','状态','备注'];
+  const rows = data.map(d=>[d.company,d.position,d.date,d.status,d.note].map(v=>`"${v}"`).join(','));
+  const csv = [headers.join(','),...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+  a.download = '求职记录_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+}
+
+function esc(s) { return (s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+function importCSV(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const text = e.target.result.replace(/^\uFEFF/, ''); // strip BOM
+      const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+      if (lines.length < 2) { showToast('CSV文件内容为空', 'error'); return; }
+
+      const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim());
+      // flexible header mapping
+      const colMap = {
+        company: headers.findIndex(h => h.includes('公司')),
+        position: headers.findIndex(h => h.includes('岗位')),
+        date: headers.findIndex(h => h.includes('日期') || h.includes('date')),
+        status: headers.findIndex(h => h.includes('状态') || h.includes('status')),
+        note: headers.findIndex(h => h.includes('备注') || h.includes('note')),
+      };
+
+      if (colMap.company === -1 || colMap.position === -1) {
+        showToast('CSV格式不对，需要包含"公司"和"岗位"列', 'error'); return;
+      }
+
+      const validStatuses = ['待审核','已查看','笔试','面试','Offer','已挂'];
+      let imported = 0;
+      let skipped = 0;
+
+      for (let i = 1; i < lines.length; i++) {
+        const cols = parseCSVLine(lines[i]);
+        const company = (cols[colMap.company] || '').trim();
+        const position = (cols[colMap.position] || '').trim();
+        if (!company || !position) { skipped++; continue; }
+
+        // check duplicate
+        const isDup = data.some(d => d.company === company && d.position === position);
+        if (isDup) { skipped++; continue; }
+
+        const status = colMap.status !== -1 ? (cols[colMap.status] || '').trim() : '';
+        const newId = data.length ? Math.max(...data.map(d=>d.id))+1 : 1;
+        data.push({
+          id: newId,
+          company,
+          position,
+          date: colMap.date !== -1 ? (cols[colMap.date] || '').trim() : new Date().toISOString().slice(0,7),
+          status: validStatuses.includes(status) ? status : '待审核',
+          note: colMap.note !== -1 ? (cols[colMap.note] || '').trim() : ''
+        });
+        imported++;
+      }
+
+      save(); renderTable();
+      showToast(`成功导入 ${imported} 条${skipped ? `，跳过 ${skipped} 条（重复或空行）` : ''}`, 'success');
+    } catch(err) {
+      showToast('导入失败，请检查文件格式', 'error');
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function parseCSVLine(line) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQuotes && line[i+1] === '"') { current += '"'; i++; }
+      else { inQuotes = !inQuotes; }
+    } else if (ch === ',' && !inQuotes) {
+      result.push(current); current = '';
+    } else {
+      current += ch;
+    }
+  }
+  result.push(current);
+  return result;
+}
+
+function showToast(msg, type) {
+  const existing = document.getElementById('toast');
+  if (existing) existing.remove();
+  const toast = document.createElement('div');
+  toast.id = 'toast';
+  toast.textContent = msg;
+  toast.style.cssText = `
+    position:fixed; bottom:30px; left:50%; transform:translateX(-50%);
+    background:${type==='success' ? 'rgba(110,232,168,0.15)' : 'rgba(240,110,110,0.15)'};
+    border:1px solid ${type==='success' ? 'rgba(110,232,168,0.4)' : 'rgba(240,110,110,0.4)'};
+    color:${type==='success' ? '#6ee8a8' : '#f06e6e'};
+    padding:12px 24px; border-radius:8px; font-size:0.78rem;
+    font-family:'Space Mono',monospace; z-index:9999;
+    animation:fadeIn 0.2s ease;
+  `;
+  document.body.appendChild(toast);
+  setTimeout(() => { toast.style.opacity='0'; toast.style.transition='opacity 0.3s'; setTimeout(()=>toast.remove(), 300); }, 3000);
+}
+
+// AI Sidebar
+function toggleSidebar() {
+  sidebarOpen = !sidebarOpen;
+  document.getElementById('ai-sidebar').classList.toggle('open', sidebarOpen);
+  document.getElementById('main').classList.toggle('sidebar-open', sidebarOpen);
+  document.getElementById('ai-toggle-btn').classList.toggle('active', sidebarOpen);
+}
+
+function getDataSummary() {
+  const total = data.length;
+  const byStatus = {};
+  data.forEach(d=>{ byStatus[d.status]=(byStatus[d.status]||0)+1; });
+  const list = data.map(d=>`${d.company}（${d.position}）- ${d.status}${d.note?'，备注：'+d.note:''}`).join('\n');
+  return `求职记录共${total}条：\n${list}\n\n状态汇总：${JSON.stringify(byStatus)}`;
+}
+
+function quickAsk(text) {
+  document.getElementById('ai-input').value = text;
+  sendMessage();
+}
+
+function handleKey(e) {
+  if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+async function sendMessage() {
+  const input = document.getElementById('ai-input');
+  const text = input.value.trim();
+  if (!text) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+  appendMsg('user', text);
+  aiHistory.push({ role:'user', content:text });
+
+  const sendBtn = document.getElementById('send-btn');
+  sendBtn.disabled = true;
+  const typingEl = showTyping();
+
+  try {
+    const systemPrompt = `你是一个专业的求职顾问AI助手。你正在帮助一位叫Star的武汉大学金融硕士研究生分析求职情况。
+
+他的背景：武汉大学金融硕士（GPA3.5），本科广东财经大学电子商务，核心项目有Heston模型碳期权定价（Python）和量化选股策略（R语言，年化超额11.16%），有工商银行客户经理实习。他喜欢接触新事物，对消费电子/硬件公司更感兴趣，不太想做纯金融。
+
+${getDataSummary()}
+
+请根据实际投递数据给出具体建议。语气友好简洁，用中文，不要太长。`;
+
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: aiHistory.slice(-8)
+      })
+    });
+
+    const result = await response.json();
+    const reply = result.content?.[0]?.text || '抱歉，暂时无法回应，请稍后再试。';
+    typingEl.remove();
+    appendMsg('ai', reply);
+    aiHistory.push({ role:'assistant', content:reply });
+
+  } catch(err) {
+    typingEl.remove();
+    appendMsg('ai', '网络出现了点问题，请稍后再试 🙏');
+  }
+
+  sendBtn.disabled = false;
+}
+
+function appendMsg(role, text) {
+  const messages = document.getElementById('ai-messages');
+  const div = document.createElement('div');
+  div.className = `msg msg-${role}`;
+  const now = new Date();
+  const time = now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  div.innerHTML = `<div class="msg-bubble">${text.replace(/\n/g,'<br>')}</div><div class="msg-time">${time}</div>`;
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function showTyping() {
+  const messages = document.getElementById('ai-messages');
+  const div = document.createElement('div');
+  div.className = 'msg msg-ai';
+  div.innerHTML = `<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+  return div;
+}
+
+document.getElementById('ai-input').addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 100)+'px';
+});
+
+document.getElementById('search').addEventListener('input', renderTable);
+renderTable();
+</script>
+</body>
+</html>
