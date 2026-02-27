@@ -4,7 +4,7 @@
 
 ### 1. 注册账号
 - GitHub：https://github.com
-- Vercel：https://vercel.com（用GitHub登录）
+- Vercel：https://vercel.com
 
 ### 2. 获取 DeepSeek API Key
 - 访问：https://platform.deepseek.com
@@ -18,7 +18,7 @@
 ### 4. 部署到 Vercel
 - 登录 Vercel → New Project → 选择仓库 → Deploy
 
-### 5. 设置 API Key（关键）
+### 5. 设置 API Key
 - 部署完后进入项目 Settings → Environment Variables
 - 添加变量：
   - Name:  DEEPSEEK_API_KEY
@@ -26,4 +26,4 @@
 - 保存后点 Redeploy
 
 ### 6. 完成！
-访问 Vercel 给你的网址即可，手机电脑都能用。
+访问 Vercel 给网址即可，手机电脑都能用。
